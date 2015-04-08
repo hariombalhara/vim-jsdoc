@@ -1,7 +1,7 @@
 " File: jsdoc.vim
 " Author: NAKAMURA, Hisashi <https://github.com/sunvisor>
 " Modifyed: Shinya Ohyanagi <sohyanagi@gmail.com>
-" Version:  0.0.5
+" Version:  0.0.8
 " WebPage:  http://github.com/heavenshell/vim-jsdoc/
 " Description: Generate JsDoc to your JavaScript file.
 " License: BSD, see LICENSE for more details.
@@ -50,6 +50,12 @@ endif
 if !exists('g:jsdoc_allow_shorthand')
   let g:jsdoc_allow_shorthand = 0
 endif
+
+" Return data types for argument type auto completion :)
+function! jsdoc#listDataTypes(A,L,P)
+  let l:types = ['boolean', 'null', 'undefined', 'number', 'string', 'symbol', 'object']
+  return join(l:types, "\n")
+endfunction
 
 function! jsdoc#insert()
   let l:jsDocregex = '^.\{-}\s*\([a-zA-Z_$][a-zA-Z0-9_$]*\)\s*[:=]\s*function\s*(\s*\([^)]*\)\s*).*$'
@@ -117,7 +123,7 @@ function! jsdoc#insert()
         endif
       endif
 
-     if g:jsdoc_access_descriptions == 2
+     if g:jsdoc_access_descriptions == 1
        " use: http://usejsdoc.org/tags-access.html
        let l:access_tag = ' * @access '
      else
@@ -131,7 +137,7 @@ function! jsdoc#insert()
 
     for l:arg in l:args
       if g:jsdoc_allow_input_prompt == 1
-        let l:argType = input('Argument "' . l:arg . '" type: ')
+        let l:argType = input('Argument "' . l:arg . '" type: ', '', 'custom,jsdoc#listDataTypes')
         let l:argDescription = input('Argument "' . l:arg . '" description: ')
         " Prepend space to start of description only if it was provided
         if l:argDescription != ''
@@ -145,7 +151,7 @@ function! jsdoc#insert()
   endif
   if g:jsdoc_return == 1
     if g:jsdoc_allow_input_prompt == 1
-      let l:returnType = input('Return type (blank for no @return): ')
+      let l:returnType = input('Return type (blank for no @return): ', '', 'custom,jsdoc#listDataTypes')
       let l:returnDescription = ''
       if l:returnType != ''
         if g:jsdoc_return_description == 1
@@ -155,8 +161,6 @@ function! jsdoc#insert()
           let l:returnDescription = ' ' . l:returnDescription
         endif
         call add(l:lines, l:space . ' * @return {' . l:returnType . '}' . l:returnDescription)
-      else
-        call add(l:lines, l:space . ' * @return {undefined}')
       endif
     else
       call add(l:lines, l:space . ' * @return {undefined}')
